@@ -1,0 +1,34 @@
+{
+  "name": "rmdb",
+  "version": "0.0.1",
+  "description": "缓存与持久化策略",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "mocha test/**/*.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gavinning/rmdb.git"
+  },
+  "keywords": [
+    "redis",
+    "mysql",
+    "cache"
+  ],
+  "author": "gavinning",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gavinning/rmdb/issues"
+  },
+  "homepage": "https://github.com/gavinning/rmdb#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "async-redis": "^1.1.4",
+    "promise-mysql": "^3.3.1"
+  },
+  "dependencies": {
+    "aimee-is": "^1.1.0",
+    "debug": "^4.1.0",
+    "md5": "^2.2.1"
+  }
+}
