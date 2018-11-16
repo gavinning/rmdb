@@ -17,11 +17,7 @@ class RMDB {
         
         // 支持sql语句直接查询
         if (is.string(query)) {
-            this.queryMysql = () => this.mysql.query(query)
-        }
-        // 支持mysql格式的sql语句查询方式
-        if (is.array(query)) {
-            this.queryMysql = () => this.mysql.query(query[0], query[1])
+            this.queryMysql = (...args) => this.mysql.query(query, [...args])
         }
         // 支持自定义查询，返回Promise
         if (is.function(query)) {
