@@ -30,4 +30,12 @@ describe('RMDB instance test', () => {
         const data = await rmdb.key('地域').get(4)
         assert.equal(1, data.length)
     })
+
+    it('Update 地域 from RMDB', async() => {
+        let tag = `西藏高原${Math.random()}`
+        await rmdb.mysql.query(`UPDATE tag SET tag = '${tag}' WHERE id = 10`)
+        await rmdb.key('地域').update(4)
+        const data = await rmdb.key('地域').get(4)
+        assert.equal(tag, data[0].tag)
+    })
 })

@@ -1,6 +1,6 @@
 {
   "name": "rmdb",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "缓存与持久化策略",
   "main": "src/app.js",
   "scripts": {

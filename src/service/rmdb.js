@@ -62,16 +62,16 @@ class RMDB {
 
     async update() {
         await this.updateMysql(...arguments)
-        return await this[updateRedis]()
+        return await this[updateRedis](null, ...arguments)
     }
 
     async [getFromRedis]() {
         return this.redis.get(this.options.key)
     }
 
-    async [updateRedis](data) {
+    async [updateRedis](data, ...args) {
         if ([null, undefined].includes(data)) {
-            data = await this.getFromMysql()
+            data = await this.getFromMysql(...args)
         }
         data = is.string(data) ? data : JSON.stringify(data)
         return this.redis.set(this.options.key, data, this.options.timeoutType, this.options.timeout)

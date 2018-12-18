@@ -1,8 +1,9 @@
 const pm = require('promise-mysql')
 const db = module.exports = pm.createPool({
-    host: 'centos.shared',
+    host: 'localhost',
     user: 'root',
-    password: 'root',
+    password: '123456',
     database: 'test',
+    port: 32783,
     connectionLimit: 10
 })
