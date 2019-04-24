@@ -1,3 +1,3 @@
-const redis = require('async-redis')
+const Redis = require('ioredis')
 
-module.exports = redis.createClient()
+module.exports = new Redis

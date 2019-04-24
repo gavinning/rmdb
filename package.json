@@ -1,6 +1,6 @@
 {
   "name": "rmdb",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "缓存与持久化策略",
   "main": "src/app.js",
   "scripts": {
@@ -22,13 +22,13 @@
   },
   "homepage": "https://github.com/gavinning/rmdb#readme",
   "devDependencies": {
-    "mocha": "^5.2.0",
-    "async-redis": "^1.1.4",
-    "promise-mysql": "^3.3.1"
+    "ioredis": "^4.6.2",
+    "mocha": "^5.2.0"
   },
   "dependencies": {
     "aimee-is": "^1.1.0",
     "debug": "^4.1.0",
+    "god-redis-kit": "0.0.2",
     "md5": "^2.2.1"
   }
 }

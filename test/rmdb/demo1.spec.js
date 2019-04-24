@@ -1,39 +1,52 @@
 const assert = require('assert')
-const RMDB = require('./BaseRMDB')
+const redis = require('../mock/redis')
+const RMDB = require('../../src/app')(redis)
 
 
 describe('RMDB Class test', () => {
 
-    class QQShare extends RMDB {
-        constructor() {
-            super({key: 'qqShare', timeout: 10})
-        }
-
-        getFromMysql() {
-            return this.mysql.query('select * from user order by id desc limit 10')
-        }
+    function sleep(time) {
+        return new Promise((res, rej) => {
+            setTimeout(res, time)
+        })
     }
 
-    const qqShare = new QQShare
-
-    it('Get data from RMDB', async() => {
-        const data = await qqShare.get()
-        assert.equal(true, Array.isArray(data))
+    // 检查核心功能
+    it('test base', async() => {
+        const arr = [1,2,3]
+        const rmdb = RMDB.src('test:f1').keep(160, 200).from(() => arr)
+        const data = await rmdb.get()
+        assert.deepEqual(arr, data)
+        rmdb.clear()
     })
 
-    it('Add new data and update cache', async() => {
-        const old = await qqShare.get()
-        await qqShare.mysql.query('insert user(username, email) values("tom", 456)')
-        await qqShare.update()
-        const data = await qqShare.get()
-        assert.equal(++old.length, data.length)
+    // 检查缓存自动更新策略
+    it('test cache', async() => {
+        const arr = [4,5,6]
+        const rmdb = RMDB.src('test:f2').keep(160, 200).from(() => arr)
+        await rmdb.get()
+        await rmdb.clear()
+        await sleep(200)
+        const data = await rmdb.get()
+        assert.deepEqual(arr, data)
+        rmdb.clear()
     })
 
-    it('Delete data and update cache', async() => {
-        const old = await qqShare.get()
-        await qqShare.mysql.query('delete from user where username ="tom"')
-        await qqShare.update()
-        const data = await qqShare.get()
-        assert.equal(--old.length, data.length)
+    // 检查自动更新标记
+    it('test update sign', async() => {
+        const arr = [7,8,9]
+        const rmdb = RMDB.src('test:f3').keep(160, 200).from(() => arr)
+        const data = await rmdb.get()
+        assert.deepEqual(arr, data)
+
+        await rmdb.redis.expire(rmdb.updateSign.key, 0)
+        await sleep(100)
+        arr.push(0)
+        const data2 = await rmdb.get()
+        assert.deepEqual(arr, data)
+        assert.notDeepEqual([7,8,9], data)
+
+        await sleep(200)
+        await rmdb.clear()
     })
 })

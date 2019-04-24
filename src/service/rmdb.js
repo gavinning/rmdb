@@ -1,33 +1,23 @@
 const is = require('aimee-is')
+const { Increment } = require('god-redis-kit')()
 const debug = require('../lib/debug')
-const config = require('../config/timeout')
-
 const updateRedis = Symbol('updateRedis')
 const getFromRedis = Symbol('getFromRedis')
+const isNeedUpdate = Symbol('isNeedUpdate')
 
-class RMDB {
-    constructor({key, query, redis, mysql, timeout, timeoutType}) {
+class BaseRMDB {
+    constructor({key, timeout, dataSource, updateSign, redis}) {
+        this.key = key
         this.redis = redis
-        this.mysql = mysql
-        this.queryMysql = () => {}
+        this.timeout = timeout
+        this.updateSign = updateSign
+        this.dataSource = dataSource || (() => {})
 
-        this.options = { key }
-        this.options.timeout = timeout || config.default.value
-        this.options.timeoutType = config.isVaildType(timeoutType) ? timeoutType : config.default.type
-        
-        // 支持sql语句直接查询
-        if (is.string(query)) {
-            this.queryMysql = (...args) => this.mysql.query(query, [...args])
-        }
-        // 支持自定义查询，返回Promise
-        if (is.function(query)) {
-            this.queryMysql = query
-        }
-    }
+        Increment.redis = redis
 
-    key(key) {
-        this.options.key = key
-        return this
+        if (!is.function(dataSource)) {
+            throw new Error('RMDB: dataSource must be a function')
+        }
     }
 
     async get() {
@@ -36,8 +26,10 @@ class RMDB {
         // 若存在则直接返回
         let data = await this[getFromRedis]()
         if (data) {
-            debug.log('data from redis by', this.options.key)
+            debug.log('data from redis by', this.key)
             try {
+                // 检查是否需要更新
+                this[isNeedUpdate]()
                 return JSON.parse(data)
             }
             catch(err) {
@@ -47,43 +39,62 @@ class RMDB {
 
         // Step 2
         // 无缓存则从Mysql读取数据
-        data = await this.getFromMysql(...arguments)
+        data = await this.dataSource(...arguments)
 
         // Step 3
         // 更新数据到Redis
-        // 允许失败，失败则下一次继续从Mysql读取
+        // 允许失败，失败则下一次继续从数据源读取
         this[updateRedis](data)
 
         // Step 4
         // 返回数据
-        debug.log('data from mysql by', this.options.key)
+        debug.log('data from dataSource by', this.key)
         return data
     }
 
     async update() {
-        await this.updateMysql(...arguments)
-        return await this[updateRedis](null, ...arguments)
+        return this[updateRedis](...arguments)
+    }
+
+    async clear() {
+        await this.redis.del(this.key)
+        await this.redis.del(this.updateSign.key)
+    }
+
+    async [isNeedUpdate]() {
+        const isRepeat = await Increment.create(this.updateSign.key).isRepeat()
+        
+        // 检查重复更新
+        if (isRepeat) {
+            return false
+        }
+
+        try {
+            await this[updateRedis]()
+        }
+        catch(err) {
+            debug.error(`key:${this.key} update failure`)
+            this.redis.expire(this.updateSign.key, 1)
+        }
     }
 
     async [getFromRedis]() {
-        return this.redis.get(this.options.key)
+        return this.redis.get(this.key)
     }
 
     async [updateRedis](data, ...args) {
         if ([null, undefined].includes(data)) {
-            data = await this.getFromMysql(...args)
+            data = await this.dataSource(...args)
         }
         data = is.string(data) ? data : JSON.stringify(data)
-        return this.redis.set(this.options.key, data, this.options.timeoutType, this.options.timeout)
+        return !this.timeout ?
+            this.redis.set(this.key, data):
+            this.redis.set(this.key, data, 'EX', this.timeout)
     }
 
-    // 子类必须实现该方法
-    async getFromMysql() {
-        return this.queryMysql(...arguments)
+    static init() {
+        return new this(...arguments)
     }
-
-    // 子类可选实现该方法
-    async updateMysql() {}
 }
 
-module.exports = RMDB
+module.exports = BaseRMDB
