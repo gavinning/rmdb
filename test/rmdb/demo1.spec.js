@@ -14,7 +14,7 @@ describe('RMDB Class test', () => {
     // 检查核心功能
     it('test base', async() => {
         const arr = [1,2,3]
-        const rmdb = RMDB.src('test:f1').keep(160, 200).from(() => arr)
+        const rmdb = RMDB.src('test:f1').from(() => arr)
         const data = await rmdb.get()
         assert.deepEqual(arr, data)
         rmdb.clear()
