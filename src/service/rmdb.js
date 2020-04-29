@@ -21,15 +21,15 @@ class BaseRMDB {
     }
 
     async get() {
-        // Step 1
+        // 检查是否需要更新
+        await this[isNeedUpdate]()
+
         // 检查Redis
         // 若存在则直接返回
         let data = await this[getFromRedis]()
         if (data) {
             debug.log('data from redis by', this.key)
             try {
-                // 检查是否需要更新
-                this[isNeedUpdate]()
                 return JSON.parse(data)
             }
             catch(err) {
@@ -37,16 +37,14 @@ class BaseRMDB {
             }
         }
 
-        // Step 2
-        // 无缓存则从Mysql读取数据
+        // 缓存查询失败
+        // 从数据源读取数据
         data = await this.dataSource(...arguments)
 
-        // Step 3
         // 更新数据到Redis
         // 允许失败，失败则下一次继续从数据源读取
         this[updateRedis](data)
 
-        // Step 4
         // 返回数据
         debug.log('data from dataSource by', this.key)
         return data
@@ -71,6 +69,8 @@ class BaseRMDB {
 
         try {
             await this[updateRedis]()
+            // 重要：设置更新标记过期时间
+            this.redis.expire(this.updateSign.key, this.updateSign.timeout)
         }
         catch(err) {
             debug.error(`key:${this.key} update failure`)
