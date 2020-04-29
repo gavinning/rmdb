@@ -9,7 +9,9 @@ npm i rmdb --save
 
 ### Usage
 ```js
-const RMDB = reuqire('rmdb')
+// 推荐使用 ioredis
+// 依赖支持Promise的Redis实例
+const RMDB = reuqire('rmdb')(redis)
 ```
 创建rmdb实例
 ```js
