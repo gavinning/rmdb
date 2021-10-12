@@ -4,33 +4,47 @@
 
 ### Install
 ```sh
-npm i rmdb --save
+npm i rmdb
+yarn add rmdb
 ```
 
 ### Usage
 ```js
 // 推荐使用 ioredis
 // 依赖支持Promise的Redis实例
-const RMDB = reuqire('rmdb')(redis)
+const { Factory } = reuqire('rmdb')
+const RMDB = Factory(redis)
 ```
+```js
+// 使用ES6
+import Factory from 'rmdb'
+const RMDB = factory(redis)
+```
+
 创建rmdb实例
 ```js
-// 默认更新时间 10分钟 缓存不会过期
+// 默认更新时间 5分钟 缓存不会过期
 const rmdb = RMDB.src(key).from(dataSource)
 
+/**
+ * @param {string} key              必须，Redis Key
+ * @param {number} autoUpdateTime   数据自动更新时间，默认5分钟
+ * @param {number?} expireTime      数据过期时间，可选，默认不过期
+ * @param {DataSource} dataSource   必须，数据来源
+ * @returns {RMDB}
+ */
+const rmdb = RMDB.src(key).keep(autoUpdateTime, expireTime).from(dataSource)
 
-// or
-// @key String 必须，Redis Key
-// @updateTime Number 可选，更新时间
-// @expireTime Number 可选，过期时间，设置该参数，缓存会过期
-// @dataSource Function 必须，数据来源
-const rmdb = RMDB.src(key).keep(updateTime, expireTime).from(dataSource)
 
-
-// 推荐
-// 缓存本身不会过期，updateTime设置更新时间间隔
+// 对于配置类型的存储，推荐不设置expireTime时间
+// 缓存本身不会过期，autoUpdateTime设置更新时间间隔
 // 如果更新失败将会使用缓存输出
-const rmdb = RMDB.src(key).keep(updateTime).from(dataSource)
+const rmdb = RMDB.src(key).keep(autoUpdateTime).from(dataSource)
+```
+
+#### Types
+```ts
+export type DataSource = (...args: any[]) => any | Promise<any>
 ```
 
 
@@ -58,11 +72,18 @@ rmdb实例提供3个方法
 ```js
 // 查询数据
 const data = await rmdb.get()
+// 过滤条件
+// 所有参数会被当做过滤条件透传给dataSource
+// 过滤条件属于高级用法，多数时候不需要，谨慎使用
+const data = await rmdb.get({ id: 1 })
 ```
 ```js
 // 更新数据，参数为空默认从数据源更新
 const result = await rmdb.update()
-const result = await rmdb.update(data)
+// 过滤条件
+// 所有参数会被当做过滤条件透传给dataSource
+// 过滤条件属于高级用法，多数时候不需要，谨慎使用
+const result = await rmdb.update({ id: 1 })
 ```
 ```js
 // 清理缓存

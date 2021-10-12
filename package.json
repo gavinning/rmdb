@@ -1,34 +1,64 @@
 {
   "name": "rmdb",
-  "version": "0.1.1",
-  "description": "缓存与持久化策略",
-  "main": "src/app.js",
-  "scripts": {
-    "test": "mocha test/**/*.spec.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gavinning/rmdb.git"
-  },
-  "keywords": [
-    "redis",
-    "mysql",
-    "cache"
-  ],
-  "author": "gavinning",
+  "author": "gavinning <gavinning@qq.com>",
+  "module": "dist/rmdb.esm.js",
+  "version": "0.2.0",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/gavinning/rmdb/issues"
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
   },
-  "homepage": "https://github.com/gavinning/rmdb#readme",
+  "scripts": {
+    "dev": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "tabWidth": 4,
+    "printWidth": 110,
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "arrowParens": "avoid"
+  },
+  "size-limit": [
+    {
+      "path": "dist/rmdb.cjs.production.min.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/rmdb.esm.js",
+      "limit": "10 KB"
+    }
+  ],
   "devDependencies": {
-    "ioredis": "^4.16.3",
-    "mocha": "^7.1.2"
+    "@size-limit/preset-small-lib": "^6.0.2",
+    "@types/debug": "^4.1.7",
+    "@types/ioredis": "^4.27.6",
+    "husky": "^7.0.2",
+    "regenerator-runtime": "^0.13.9",
+    "size-limit": "^6.0.1",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.3"
   },
   "dependencies": {
-    "aimee-is": "^1.1.0",
-    "debug": "^4.1.1",
-    "god-redis-kit": "0.0.2",
-    "md5": "^2.2.1"
+    "@4a/rediskit": "^0.2.0",
+    "debug": "^4.3.2",
+    "ioredis": "^4.27.11"
   }
 }
