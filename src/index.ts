@@ -3,7 +3,7 @@ import { Redis, DataSource } from './types'
 export * from './types'
 
 class RMDB {
-    readonly key: string
+    private readonly key: string
     private autoUpdateTime: number = 5 * 60
     private expireTime?: number
     static redis: Redis
@@ -30,7 +30,7 @@ class RMDB {
             redis: RMDB.redis,
             timeout: this.expireTime,
             autoUpdateTime: this.autoUpdateTime,
-            dataSource
+            dataSource,
         })
     }
 
@@ -38,11 +38,11 @@ class RMDB {
         return new this(key)
     }
 
-    private static getKey(args: string[]) {
+    private static getKey(args: (string | number)[]) {
         return Array.from(args).join(':')
     }
 
-    static src(...args: string[]) {
+    static src(...args: (string | number)[]) {
         return this.init(this.getKey(args))
     }
 }

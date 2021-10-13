@@ -21,17 +21,29 @@ describe('RMDB Class test', () => {
         rmdb.clear()
     })
 
-    // 检查参数传递
-    it('test arguments', async () => {
-        const arr = [
-            { id: 1, age: 21 },
-            { id: 2, age: 22 },
-            { id: 3, age: 23 },
-        ]
-        const rmdb = RMDB.src('test:f1').from((user) => arr.find(item => item.id === user.id))
-        const data = await rmdb.get({ id: 1 })
-        deepEqual({ id: 1, age: 21 }, data)
-        rmdb.clear()
+    // 检查过滤条件传递
+    it('test filters', async () => {
+        const a = { id: 1, age: 21 }
+        const b = { id: 2, age: 22 }
+        const c = { id: 3, age: 23 }
+
+        type User = typeof a
+
+        function getPosts(user: User) {
+            return { id: user.id, title: 'post' }
+        }
+
+        function getPostsHandler(user: User) {
+            return RMDB.src('app:foo', user.id).keep(5, 10).from(getPosts).get(user)
+        }
+
+        const a1 = await getPostsHandler(a)
+        const b1 = await getPostsHandler(b)
+        const c1 = await getPostsHandler(c)
+
+        deepEqual(a.id, a1.id)
+        deepEqual(b.id, b1.id)
+        deepEqual(c.id, c1.id)
     })
 
     // 检查缓存自动更新策略

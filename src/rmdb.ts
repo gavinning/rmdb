@@ -3,6 +3,7 @@ import { RMDBOptions } from './types'
 import { Increment } from '@4a/rediskit'
 
 export default class RMDB {
+    private filters: any[] = []
     private readonly updateKey: string
     private readonly key: RMDBOptions['key']
     private readonly redis: RMDBOptions['redis']
@@ -22,6 +23,9 @@ export default class RMDB {
     }
 
     async get(...args: any[]) {
+        // 设置过滤条件
+        this.filters = args
+
         // 检查是否需要更新
         await this.isNeedUpdate()
 
@@ -40,15 +44,15 @@ export default class RMDB {
         // 缓存查询失败
         // 更新数据到Redis
         // 允许失败，失败则下一次继续从数据源读取
-        data = await this.update(...args)
+        data = await this.update()
 
         // 返回数据
         log('[RMDB]data from dataSource by:', this.key)
         return data
     }
 
-    async update(...args: any[]) {
-        const data = await this.dataSource(...args)
+    async update() {
+        const data = await this.dataSource(...this.filters)
         const source = this.isString(data) ? data : JSON.stringify(data)
         !this.timeout
             ? this.redis.set(this.key, source)
