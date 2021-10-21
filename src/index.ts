@@ -52,6 +52,7 @@ export function Factory(redis: Redis) {
     return RMDB
 }
 
+export type Rmdb = typeof RMDB
 export default Factory
 
 // RMDB.src(key).keep(60 * 5).from(() => dataSource())
